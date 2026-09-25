@@ -19,7 +19,7 @@
  * Difficulty: 1
  */
 int bitAnd(int x, int y) {
-    return 2;
+    return ~(~x | ~y);
 }
 
 /*
@@ -30,7 +30,7 @@ int bitAnd(int x, int y) {
  *   Difficulty: 1
  */
 int bitXor(int x, int y) {
-    return 2;
+    return ~(~x & ~y);
 }
 
 /*
@@ -50,7 +50,14 @@ int bitXor(int x, int y) {
  *   1 if x and y have the same sign , 0 otherwise.
  */
 int samesign(int x, int y) {
-    return 2;
+    x>>31;
+    y>>31;
+    if(x && y){
+        return 1;
+    }else if(!x && !y){
+        return 1;
+    }
+    return 0;
 }
 
 /*
@@ -63,7 +70,23 @@ int samesign(int x, int y) {
  *   Difficulty: 4
  */
 int logtwo(int v) {
-    return 2;
+    int answer = (v > 65535) << 4;
+    v = v >> answer;
+
+    int step = (v > 255) << 3;
+    answer = answer | step;
+    v = v >> step;
+
+    step = (v > 15) << 2;
+    answer = answer | step;
+    v = v >> step;
+
+    step = (v > 3) << 1;
+    answer = answer | step;
+    v = v >> step;
+
+    answer = answer | (v > 1);
+    return answer;
 }
 
 /*
@@ -76,7 +99,13 @@ int logtwo(int v) {
  *    Difficulty: 2
  */
 int byteSwap(int x, int n, int m) {
-    return 2;
+    int shiftN = n << 3;                 
+    int shiftM = m << 3;                 
+    int byteN = (x >> shiftN) & 0xff;
+    int byteM = (x >> shiftM) & 0xff;
+    int diff = byteN ^ byteM;
+
+    return x ^ (diff << shiftN) ^ (diff << shiftM);
 }
 
 /*
@@ -88,7 +117,14 @@ int byteSwap(int x, int n, int m) {
  *   Difficulty: 3
  */
 unsigned reverse(unsigned v) {
-    return 2;
+    unsigned mask = 1;
+    unsigned answer = 0;
+    for(int i=0; i<32; i++){
+        answer += v & mask;
+        v = v>>1;
+        answer = answer<<1;
+    }
+    return answer;
 }
 
 /*
@@ -100,7 +136,9 @@ unsigned reverse(unsigned v) {
  *   Difficulty: 3
  */
 int logicalShift(int x, int n) {
-    return 2;
+    unsigned mask = 0xFFFFFFFF;
+    mask>>n;
+    return (x>>n) & mask;
 }
 
 /*
