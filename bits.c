@@ -30,7 +30,7 @@ int bitAnd(int x, int y) {
  *   Difficulty: 1
  */
 int bitXor(int x, int y) {
-    return ~(~x & ~y);
+    return ~(~x & ~y) & ~(x & y);
 }
 
 /*
@@ -50,14 +50,14 @@ int bitXor(int x, int y) {
  *   1 if x and y have the same sign , 0 otherwise.
  */
 int samesign(int x, int y) {
-    x>>31;
-    y>>31;
-    if(x && y){
-        return 1;
-    }else if(!x && !y){
-        return 1;
+    if (!x) {
+        return !y;
     }
-    return 0;
+    if (!y) {
+        return 0;
+    }
+
+    return !((x >> 31) ^ (y >> 31));
 }
 
 /*
@@ -137,7 +137,7 @@ unsigned reverse(unsigned v) {
  */
 int logicalShift(int x, int n) {
     unsigned mask = 0xFFFFFFFF;
-    mask>>n;
+    mask = mask>>n;
     return (x>>n) & mask;
 }
 
