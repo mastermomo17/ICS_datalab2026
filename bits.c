@@ -119,10 +119,12 @@ int byteSwap(int x, int n, int m) {
 unsigned reverse(unsigned v) {
     unsigned mask = 1;
     unsigned answer = 0;
-    for(int i=0; i<32; i++){
+    unsigned count = 0;
+    while(~count){
+        answer = answer<<1;
         answer += v & mask;
         v = v>>1;
-        answer = answer<<1;
+        count = (count<<1) + 1;
     }
     return answer;
 }
@@ -136,9 +138,14 @@ unsigned reverse(unsigned v) {
  *   Difficulty: 3
  */
 int logicalShift(int x, int n) {
-    unsigned mask = 0xFFFFFFFF;
-    mask = mask>>n;
-    return (x>>n) & mask;
+    int mask = 0x80000000;
+    int top  = 0x80000000;
+    int back = !!n;
+    mask = ~(mask>>n);
+    mask = (mask<<back) | back;
+
+    int if0 = ~(!n) + 1;
+    return ((x>>n) & mask) | (x & top & if0);
 }
 
 /*
@@ -150,7 +157,30 @@ int logicalShift(int x, int n) {
  *   Difficulty: 4
  */
 int leftBitCount(int x) {
-    return 2;
+    x = ~x;
+    int k = (x>>16) & 0xFFFF;
+    k = !k << 4;
+
+    int s1 = 24 + (~k + 1);
+    int b1 = (x >> s1) & 0xFF;
+    b1 = !b1 << 3;
+    k = k + b1;
+
+    int s2 = s1 + 4 + (~b1 + 1);
+    int b2 = (x >> s2) & 0xF;
+    b2 = !b2 << 2;
+    k = k + b2;
+
+    int s3 = s2 + 2 + (~b2 + 1);
+    int b3 = (x >> s3) & 3;
+    b3 = !b3 << 1;
+    k = k + b3;
+
+    int s4 = s3 + 1 + (~b3 + 1);
+    int b4 = (x >> s4) & 1;
+    k = k + !b4;
+
+    return k + !x;
 }
 
 /*
@@ -162,7 +192,31 @@ int leftBitCount(int x) {
  *   Difficulty: 4
  */
 unsigned float_i2f(int x) {
-    return 2;
+    unsigned sign = 0;
+    unsigned xp   = x;
+    if(x==0){
+        return 0;
+    }
+    if(x<0){
+        xp = ~xp + 1;
+        sign = 0x80000000;
+    }
+    int exp = 1;
+    while((xp>>31 & 1) == 0){
+        xp = xp<<1;
+        exp = exp + 1;
+    }
+    exp = (127 + (32-exp)) << 23;
+
+    unsigned tail = xp & 0xFF;
+    unsigned frac = (xp << 1) >> 9;
+
+    if (tail > 0x80) frac = frac + 1;
+    if (tail == 0x80) {
+        if (frac & 1) frac = frac + 1;
+    }
+
+    return sign + exp + frac;
 }
 
 /*
@@ -177,7 +231,20 @@ unsigned float_i2f(int x) {
  *   Difficulty: 4
  */
 unsigned floatScale2(unsigned uf) {
-    return 2;
+    unsigned exp_mask = 0x7F800000;
+    unsigned sign = uf & 0x80000000;
+    unsigned exp = uf & exp_mask;
+
+    if (exp == exp_mask) {
+        return uf;
+    }
+    if (exp == 0) {
+        return sign + ((uf & 0x007FFFFF) << 1);
+    }
+    if (exp == 0x7F000000) {
+        return sign + exp_mask;
+    }
+    return uf + 0x00800000;
 }
 
 /*
