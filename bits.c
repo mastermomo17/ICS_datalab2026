@@ -261,9 +261,26 @@ unsigned floatScale2(unsigned uf) {
  *   Difficulty: 3
  */
 int float64_f2i(unsigned uf1, unsigned uf2) {
-    return 2;
-}
+    unsigned exp  = (uf2 >> 20) & 0x7FF;
+    unsigned sign = uf2 >> 31;
 
+    if (exp < 1023) return 0; 
+    if (exp >= 1054) return ~0x7FFFFFFF;
+
+    unsigned e = exp - 1023;
+    unsigned high = (uf2 & 0xFFFFF) | 0x100000;
+    unsigned mag;
+
+    if (e <= 20) {
+        mag = high >> (20 - e);
+    } else {
+        mag = (high << (e - 20)) | (uf1 >> (52 - e));
+    }
+
+    int result = mag;
+    if (sign) return -result;
+    return result;
+}
 /*
  * floatPower2 - Return bit-level equivalent of the expression 2.0^x
  *   (2.0 raised to the power x) for any 32-bit integer x.
@@ -278,5 +295,15 @@ int float64_f2i(unsigned uf1, unsigned uf2) {
  *   Difficulty: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+    if(x >= 128){
+        return 0x7F800000;
+    }
+    if(x <= -150){
+        return 0;
+    }
+    if(x<-126){
+        return (1<<(x+149));
+    }else{
+        return (x+127)<<23;
+    }
 }
